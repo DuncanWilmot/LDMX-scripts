@@ -11,6 +11,13 @@ import awkward
 import concurrent.futures
 executor = concurrent.futures.ThreadPoolExecutor(12)
 
+## START NEW FOR FIDUCIAL ##
+cellMap = np.loadtxt('data/v12/cellmodule.txt')
+scoringPlaneZ = 240.5015 
+ecalFaceZ = 248.35
+cell_radius = 5
+## END NEW FOR FIDUCIAL ##
+
 #ecalBranches = [  # EcalVeto data to save.  Could add more, but probably unnecessary.
 #    'discValue_',
 #    'recoilX_',
@@ -45,7 +52,29 @@ radius_recoil_68_theta_20_end = [4.0754238481177705, 4.193693485630508, 5.142094
 
 radius_68 = [radius_beam_68,radius_recoil_68_p_0_500_theta_0_10, radius_recoil_68_p_500_1500_theta_0_10,radius_recoil_68_theta_10_20,radius_recoil_68_theta_20_end]
 
-
+## START NEW FOR FIDUCIAL ##
+def CallX(Hitz, Recoilx, Recoily, Recoilz, RPx, RPy, RPz):
+    Point_xz = [Recoilx, Recoilz]
+    #Almost never happens
+    if RPx == 0:
+        slope_xz = 99999
+    else:
+        slope_xz = RPz / RPx
+    
+    x_val = (float(Hitz - Point_xz[1]) / float(slope_xz)) + Point_xz[0]
+    return x_val
+    
+def CallY(Hitz, Recoilx, Recoily, Recoilz, RPx, RPy, RPz):
+    Point_yz = [Recoily, Recoilz]
+    #Almost never happens
+    if RPy == 0:
+        slope_yz = 99999
+    else:
+        slope_yz = RPz / RPy
+    
+    y_val = (float(Hitz - Point_yz[1]) / float(slope_yz)) + Point_yz[0]
+    return y_val
+## END NEW FOR FIDUCIAL ##
 
 def _concat(arrays, axis=0):
     if len(arrays) == 0:
@@ -210,6 +239,51 @@ class ECalHitsDataset(Dataset):
             energy = energy[pos]
             (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
 
+            ## START NEW FOR FIDUCIAL ##
+            # Criteria for recoil electron 
+            el = (t['EcalScoringPlaneHits_v12.pdgID_'].array() == 11) * \
+                 (t['EcalScoringPlaneHits_v12.z_'].array() > 240) * \
+                 (t['EcalScoringPlaneHits_v12.z_'].array() < 241) * \
+                 (t['EcalScoringPlaneHits_v12.pz_'].array() > 0)
+
+            # Position & momentum of recoil electrons
+            def _pad_array(arr):
+                # = t['EcalScoringPlaneHits_v12.x_'].array()[el].pad(1, clip=True).fillna(0).flatten()  #Arr of floats.  [0][0] fails.
+                arr = awkward.pad_none(arr, 1, clip=True)
+                arr = awkward.fill_none(arr, 0)
+                return awkward.flatten(arr)
+
+            etraj_x_sp = _pad_array(t['EcalScoringPlaneHits_v12.x_'].array()[el])[start:stop][pos_pass_presel]  #Arr of floats.  [0][0] fails.
+            etraj_y_sp = _pad_array(t['EcalScoringPlaneHits_v12.y_'].array()[el])[start:stop][pos_pass_presel]
+            etraj_z_sp = _pad_array(t['EcalScoringPlaneHits_v12.z_'].array()[el])[start:stop][pos_pass_presel]
+            etraj_px_sp = _pad_array(t['EcalScoringPlaneHits_v12.px_'].array()[el])[start:stop][pos_pass_presel]
+            etraj_py_sp = _pad_array(t['EcalScoringPlaneHits_v12.py_'].array()[el])[start:stop][pos_pass_presel]
+            etraj_pz_sp = _pad_array(t['EcalScoringPlaneHits_v12.pz_'].array()[el])[start:stop][pos_pass_presel]
+
+            # Fiducial test (Boolean)
+            fiducial = False
+            for i in range(len(etraj_x_sp)):
+                if not etraj_x_sp[i] == -9999 and not etraj_y_sp[i] == -9999 and not etraj_px_sp[i] == -9999 and not etraj_py_sp[i] == -9999 and not etraj_pz_sp[i] == -9999:
+                    for x_cm in cellMap:
+                        recoilfX = CallX(ecalFaceZ, etraj_x_sp[i], etraj_y_sp[i], scoringPlaneZ, etraj_px_sp[i], etraj_py_sp[i], etraj_pz_sp[i])
+                        recoilfY = CallY(ecalFaceZ, etraj_x_sp[i], etraj_y_sp[i], scoringPlaneZ, etraj_px_sp[i], etraj_py_sp[i], etraj_pz_sp[i])
+                        xdis = recoilfY - x_cm[2]
+                        ydis = recoilfX - x_cm[1]
+                        celldis = np.sqrt(xdis**2 + ydis**2)
+                        if celldis <= cell_radius:
+                            fiducial = True
+                            break
+
+            # Make Boolean array for fiducial/non-fiducial events and add to pre-selection 
+            events = np.zeros(len(etraj_x_sp), dtype=bool)
+
+            for i in range(len(events)):
+                if fiducial == True:
+                    events[i] = 1
+
+            for k in table:
+                table[k] = table[k][events] #Picks out only the fiducial events
+            ## END NEW FOR FIDUCIAL ##
 
             # Now, work with table['etraj_ref'] and table['ptraj_ref'].
             # Create lists:  x/y/z_e, p
