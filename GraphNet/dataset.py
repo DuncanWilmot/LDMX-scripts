@@ -460,6 +460,7 @@ class ECalHitsDataset(Dataset):
                             obs_dict[k].append(o_d[k])
                         if max_event > 0 and n_total_selected >= max_event:
                             break
+                        gc.collect()
 
                 # calc preselection eff before dropping events more than `max_event`
                 self.presel_eff[extra_label] = float(n_total_selected) / n_total_inclusive
@@ -488,6 +489,7 @@ class ECalHitsDataset(Dataset):
                 for k in obs_branches + ecal_veto_branches:
                     self.obs_data[k].append(obs_dict[k])
                 n_sum += n_total_loaded
+                gc.collect()
             return n_sum
 
         nsig = _load_dataset(siglist, 'sig')
