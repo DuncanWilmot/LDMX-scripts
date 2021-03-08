@@ -93,7 +93,8 @@ def _concat(arrays, axis=0):
 class ECalHitsDataset(Dataset):
 
     def __init__(self, siglist, bkglist, load_range=(0, 1), apply_preselection=True, ignore_evt_limits=False, obs_branches=[], veto_branches=[], coord_ref=None, detector_version='v12'):
-        super(ECalHitsDataset, self).__init__()gc.collect()
+        super(ECalHitsDataset, self).__init__()
+        gc.collect()
 
         # first load cell map
         self._load_cellMap(version=detector_version)
