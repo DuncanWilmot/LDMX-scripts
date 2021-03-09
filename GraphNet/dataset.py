@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import gc
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -11,6 +10,9 @@ import uproot
 import awkward
 import concurrent.futures
 executor = concurrent.futures.ThreadPoolExecutor(12)
+
+import psutil 
+import gc #May reduce RAM usage
 
 ## START NEW FOR FIDUCIAL ##
 cellMap = np.loadtxt('data/v12/cellmodule.txt')
@@ -94,7 +96,8 @@ class ECalHitsDataset(Dataset):
 
     def __init__(self, siglist, bkglist, load_range=(0, 1), apply_preselection=True, ignore_evt_limits=False, obs_branches=[], veto_branches=[], coord_ref=None, detector_version='v12'):
         super(ECalHitsDataset, self).__init__()
-        gc.collect()
+        
+        gc.collect() #May reduce RAM usage
 
         # first load cell map
         self._load_cellMap(version=detector_version)
@@ -462,7 +465,8 @@ class ECalHitsDataset(Dataset):
                             obs_dict[k].append(o_d[k])
                         if max_event > 0 and n_total_selected >= max_event:
                             break
-                        gc.collect()
+                            
+                         gc.collect() #May reduce RAM usage 
 
                 # calc preselection eff before dropping events more than `max_event`
                 self.presel_eff[extra_label] = float(n_total_selected) / n_total_inclusive
@@ -491,7 +495,9 @@ class ECalHitsDataset(Dataset):
                 for k in obs_branches + ecal_veto_branches:
                     self.obs_data[k].append(obs_dict[k])
                 n_sum += n_total_loaded
+                
                 gc.collect()
+                
             return n_sum
 
         nsig = _load_dataset(siglist, 'sig')
