@@ -465,8 +465,7 @@ class ECalHitsDataset(Dataset):
                             obs_dict[k].append(o_d[k])
                         if max_event > 0 and n_total_selected >= max_event:
                             break
-                            
-                         gc.collect() #May reduce RAM usage 
+                            gc.collect() #May reduce RAM usage 
 
                 # calc preselection eff before dropping events more than `max_event`
                 self.presel_eff[extra_label] = float(n_total_selected) / n_total_inclusive
