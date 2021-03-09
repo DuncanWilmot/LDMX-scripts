@@ -231,8 +231,8 @@ class ECalHitsDataset(Dataset):
                 for k in table:
                     table[k] = table[k][pos_pass_presel]
             n_selected = len(table[self._branches[0]])  # after preselection
-            print("EVENTS BEFORE PRESELECTION (in _read_file):  {}".format(n_inclusive))
-            print("EVENTS AFTER PRESELECTION: ", n_selected)
+            #print("EVENTS BEFORE PRESELECTION (in _read_file):  {}".format(n_inclusive))
+            #print("EVENTS AFTER PRESELECTION: ", n_selected)
 
             if n_selected == 0:   #Ignore this file
                 print("ERROR:  ParticleNet can't handle files with no events passing selection!")
