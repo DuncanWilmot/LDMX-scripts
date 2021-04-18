@@ -72,24 +72,24 @@ bkglist = {
 
 siglist = {
     # (filepath, num_events_for_training)
-    1:    ('/home/pmasterson/GraphNet_input/v12/*0.001*.root', 200000),
-    10:   ('/home/pmasterson/GraphNet_input/v12/*0.01*.root',  200000),
-    100:  ('/home/pmasterson/GraphNet_input/v12/*0.1*.root',   200000),
-    1000: ('/home/pmasterson/GraphNet_input/v12/*1.0*.root',   200000),
+    1:    ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*0.001*.root', 200000),
+    10:   ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*0.01*.root',  200000),
+    100:  ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*0.1*.root',   200000),
+    1000: ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*1.0*.root',   200000),
     }
 
 if args.demo:
     bkglist = {
         # (filepath, num_events_for_training)
-        0: ('/home/pmasterson/GraphNet_input/v12/*pn*.root', 4000)
+        0: ('/home/pmasterson/GraphNet_input/v12/large_bkg/*.root', 4000)
         }
 
     siglist = {
         # (filepath, num_events_for_training)
-        1:    ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*0.001*.root', 200000),
-        10:   ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*0.01*.root',  200000),
-        100:  ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*0.1*.root',   200000),
-        1000: ('/home/pmasterson/GraphNet_input/v12/sig_extended_tracking/*1.0*.root',   200000),
+        1:    ('/home/pmasterson/GraphNet_input/v12/*0.001*.root', 1000),
+        10:   ('/home/pmasterson/GraphNet_input/v12/*0.01*.root',  1000),
+        100:  ('/home/pmasterson/GraphNet_input/v12/*0.1*.root',   1000),
+        1000: ('/home/pmasterson/GraphNet_input/v12/*1.0*.root',   1000),
         }
 #########################################################
 
