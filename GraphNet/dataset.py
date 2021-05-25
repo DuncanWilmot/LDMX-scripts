@@ -15,7 +15,6 @@ import psutil
 import gc #May reduce RAM usage
 
 ## START NEW FOR FIDUCIAL ##
-cellMap = np.loadtxt('data/v12/cellmodule.txt')
 scoringPlaneZ = 240.5015 
 ecalFaceZ = 248.35
 cell_radius = 5
@@ -29,7 +28,10 @@ cell_radius = 5
 
 #MAX_NUM_ECAL_HITS = 50
 # NEW:
-MAX_NUM_ECAL_HITS = 80
+#MAX_NUM_ECAL_HITS = 80
+#NEW:
+MAX_NUM_ECAL_HITS = 110
+MAX_ISO_ENERGY = 650
 
 # NEW:  LayerZ data (may be outdated)
 # Assumed outdated; not currently used
@@ -103,7 +105,7 @@ class ECalHitsDataset(Dataset):
         self._load_cellMap(version=detector_version)
         self._id_branch = 'EcalRecHits_v12.id_'  # Technically not necessary anymore
         self._energy_branch = 'EcalRecHits_v12.energy_'
-        ecal_veto_branches = ['EcalVeto_v12.'+b for b in veto_branches]
+        ecal_veto_branches = ['EcalVeto_v12.'+b for b in veto_branches + ['summedTightIso_', 'discValue_']]
         #self._test_branch = 'EcalVeto_v12'
         #self._x_branch = 'EcalRecHits_v12.xpos_'
         #self._y_branch = 'EcalRecHits_v12.ypos_'
@@ -225,70 +227,82 @@ class ECalHitsDataset(Dataset):
             if apply_preselection:
                 #pos_pass_presel = (table[self._energy_branch] > 0).sum() < MAX_NUM_ECAL_HITS
                 pos_pass_presel = awkward.sum(table[self._energy_branch] > 0, axis=1) < MAX_NUM_ECAL_HITS
+                #NEW
+                pos_pass_presel = (table['EcalVeto_v12.summedTightIso_'] < MAX_ISO_ENERGY) * pos_pass_presel
                 #print(awkward.type(table[self._energy_branch] > 0))
-                print("First few hit sums: ", awkward.sum(table[self._energy_branch] > 0, axis=1)[:10])
+                #print("First few hit sums: ", awkward.sum(table[self._energy_branch] > 0, axis=1)[:10])
                 #print(pos_pass_presel)
                 for k in table:
                     table[k] = table[k][pos_pass_presel]
             n_selected = len(table[self._branches[0]])  # after preselection
-            #print("EVENTS BEFORE PRESELECTION (in _read_file):  {}".format(n_inclusive))
-            #print("EVENTS AFTER PRESELECTION: ", n_selected)
+            print("EVENTS BEFORE PRESELECTION (in _read_file):  {}".format(n_inclusive))
+            print("EVENTS AFTER PRESELECTION: ", n_selected)
 
             if n_selected == 0:   #Ignore this file
                 print("ERROR:  ParticleNet can't handle files with no events passing selection!")
 
-            eid = table[self._id_branch]
-            energy = table[self._energy_branch]
-            pos = (energy > 0)
-            eid = eid[pos]  # Gets rid of all (AND ONLY) hits with 0 energy
-            energy = energy[pos]
-            (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
-
             ## START NEW FOR FIDUCIAL ##
-            # Criteria for recoil electron 
+            
+            # Creating el array for recoil electrons in the Ecal scoring plane
             el = (t['EcalScoringPlaneHits_v12.pdgID_'].array() == 11) * \
                  (t['EcalScoringPlaneHits_v12.z_'].array() > 240) * \
                  (t['EcalScoringPlaneHits_v12.z_'].array() < 241) * \
                  (t['EcalScoringPlaneHits_v12.pz_'].array() > 0)
 
-            # Position & momentum of recoil electrons
+            # Defining position and momentum of recoil electrons 
             def _pad_array(arr):
                 # = t['EcalScoringPlaneHits_v12.x_'].array()[el].pad(1, clip=True).fillna(0).flatten()  #Arr of floats.  [0][0] fails.
                 arr = awkward.pad_none(arr, 1, clip=True)
                 arr = awkward.fill_none(arr, 0)
                 return awkward.flatten(arr)
 
-            etraj_x_sp = _pad_array(t['EcalScoringPlaneHits_v12.x_'].array()[el])[start:stop][pos_pass_presel]  #Arr of floats.  [0][0] fails.
-            etraj_y_sp = _pad_array(t['EcalScoringPlaneHits_v12.y_'].array()[el])[start:stop][pos_pass_presel]
-            etraj_z_sp = _pad_array(t['EcalScoringPlaneHits_v12.z_'].array()[el])[start:stop][pos_pass_presel]
-            etraj_px_sp = _pad_array(t['EcalScoringPlaneHits_v12.px_'].array()[el])[start:stop][pos_pass_presel]
-            etraj_py_sp = _pad_array(t['EcalScoringPlaneHits_v12.py_'].array()[el])[start:stop][pos_pass_presel]
-            etraj_pz_sp = _pad_array(t['EcalScoringPlaneHits_v12.pz_'].array()[el])[start:stop][pos_pass_presel]
+            recoilX = _pad_array(t['EcalScoringPlaneHits_v12.x_'].array()[el])[start:stop][pos_pass_presel]  
+            recoilY = _pad_array(t['EcalScoringPlaneHits_v12.y_'].array()[el])[start:stop][pos_pass_presel]
+            recoilPx = _pad_array(t['EcalScoringPlaneHits_v12.px_'].array()[el])[start:stop][pos_pass_presel]
+            recoilPy = _pad_array(t['EcalScoringPlaneHits_v12.py_'].array()[el])[start:stop][pos_pass_presel]
+            recoilPz = _pad_array(t['EcalScoringPlaneHits_v12.pz_'].array()[el])[start:stop][pos_pass_presel]
 
-            # Fiducial test (Boolean)
-            fiducial = False
-            for i in range(len(etraj_x_sp)):
-                if not etraj_x_sp[i] == -9999 and not etraj_y_sp[i] == -9999 and not etraj_px_sp[i] == -9999 and not etraj_py_sp[i] == -9999 and not etraj_pz_sp[i] == -9999:
-                    for x_cm in cellMap:
-                        recoilfX = CallX(ecalFaceZ, etraj_x_sp[i], etraj_y_sp[i], scoringPlaneZ, etraj_px_sp[i], etraj_py_sp[i], etraj_pz_sp[i])
-                        recoilfY = CallY(ecalFaceZ, etraj_x_sp[i], etraj_y_sp[i], scoringPlaneZ, etraj_px_sp[i], etraj_py_sp[i], etraj_pz_sp[i])
-                        xdis = recoilfY - x_cm[2]
-                        ydis = recoilfX - x_cm[1]
+            # Looping through each event and making a boolean array for the events #
+            
+            N = len(recoilPx)
+            
+            simevents = np.zeros(N, dtype=bool)
+            
+            for i in range(N)
+            
+                recoilfX = CallX(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
+                recoilfY = CallY(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
+        
+                # Fiducial or not #
+                
+                fiducial = False
+            
+                if not recoilX[i] == -9999 and not recoilY[i] == -9999 and not recoilPx[i] == -9999 and not recoilPy[i] == -9999 and not recoilPz[i] == -9999:
+                    for c_val in self._cellMap.values():
+                        xdis = recoilfY - c_cal[1]
+                        ydis = recoilfX - c_val[0]
                         celldis = np.sqrt(xdis**2 + ydis**2)
                         if celldis <= cell_radius:
                             fiducial = True
                             break
 
-            # Make Boolean array for fiducial/non-fiducial events and add to pre-selection 
-            events = np.zeros(len(etraj_x_sp), dtype=bool)
-
-            for i in range(len(events)):
+            # If the i-th event is in the fiducial region, mark the i-th index of the simevents array with a 1 aka TRUE #
                 if fiducial == True:
-                    events[i] = 1
+                    simevents[i] = 1
+                
+            # Apply simevents to preselection #
 
             for k in table:
-                table[k] = table[k][events] #Picks out only the fiducial events
+                table[k] = table[k][simevents] 
+                
             ## END NEW FOR FIDUCIAL ##
+            
+            eid = table[self._id_branch]
+            energy = table[self._energy_branch]
+            pos = (energy > 0)
+            eid = eid[pos]  # Gets rid of all (AND ONLY) hits with 0 energy
+            energy = energy[pos]
+            (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
 
             # Now, work with table['etraj_ref'] and table['ptraj_ref'].
             # Create lists:  x/y/z_e, p
