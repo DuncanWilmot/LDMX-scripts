@@ -452,13 +452,14 @@ class ECalHitsDataset(Dataset):
                             table[k] = table_temp[k]
 
 
-                        # Now go through and load Ecal branches separately.
-                        if veto_branches:
-                            # Manually add EcalVeto vars to table
-                            EcalVeto = t["EcalVeto_v12"]
-                            table["EcalVeto_v12.summedTightIso_"] = EcalVeto["summedTightIso_"].array(interpretation_executor=executor)
-                            for branch in veto_branches:
-                                table["EcalVeto_v12."+branch] = EcalVeto[branch].array(interpretation_executor=executor)
+                       # Now go through and load Ecal branches separately.
+                        EcalVeto = t["EcalVeto_v12"]
+                        table["EcalVeto_v12.summedTightIso_"] = EcalVeto["summedTightIso_"].array(interpretation_executor=executor)
+                        # All other ecal branches:
+                        if ecal_veto_branches:
+                            for branch in ecal_veto_branches:
+                                #table["EcalVeto_v12."+branch] = EcalVeto[branch].array(interpretation_executor=executor)
+                                table[branch] = EcalVeto[branch.split('.')[1]].array(interpretation_executor=executor)
 
                         _load_coord_ref(t, table)
                         _load_recoil_pt(t, table)
