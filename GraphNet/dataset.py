@@ -456,6 +456,7 @@ class ECalHitsDataset(Dataset):
                         if veto_branches:
                             # Manually add EcalVeto vars to table
                             EcalVeto = t["EcalVeto_v12"]
+                            table["EcalVeto_v12.summedTightIso_"] = EcalVeto["summedTightIso_"].array(interpretation_executor=executor)
                             for branch in veto_branches:
                                 table["EcalVeto_v12."+branch] = EcalVeto[branch].array(interpretation_executor=executor)
 
