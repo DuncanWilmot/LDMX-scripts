@@ -279,7 +279,7 @@ class ECalHitsDataset(Dataset):
             
                 if not recoilX[i] == -9999 and not recoilY[i] == -9999 and not recoilPx[i] == -9999 and not recoilPy[i] == -9999 and not recoilPz[i] == -9999:
                     for c_val in self._cellMap.values():
-                        xdis = recoilfY - c_cal[1]
+                        xdis = recoilfY - c_val[1]
                         ydis = recoilfX - c_val[0]
                         celldis = np.sqrt(xdis**2 + ydis**2)
                         if celldis <= cell_radius:
