@@ -268,7 +268,7 @@ class ECalHitsDataset(Dataset):
             
             simevents = np.zeros(N, dtype=bool)
             
-            for i in range(N)
+            for i in range(N):
             
                 recoilfX = CallX(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
                 recoilfY = CallY(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
