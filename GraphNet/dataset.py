@@ -521,6 +521,10 @@ class ECalHitsDataset(Dataset):
         self.label = np.zeros(nsig + nbkg, dtype='float32')
         self.label[:nsig] = 1
 
+        print(obs_branches+ecal_veto_branches)
+        print(self.obs_data)
+        print(self.obs_data.keys())
+        
         self.extra_labels = np.concatenate(self.extra_labels)
         for k in self.var_data:
             self.var_data[k] = _concat(self.var_data[k])
