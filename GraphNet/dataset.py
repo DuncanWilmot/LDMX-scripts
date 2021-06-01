@@ -525,6 +525,9 @@ class ECalHitsDataset(Dataset):
         print(self.obs_data)
         print(self.obs_data.keys())
         
+        for key value in obs_data.items():
+            print(key, value[0])
+        
         self.extra_labels = np.concatenate(self.extra_labels)
         for k in self.var_data:
             self.var_data[k] = _concat(self.var_data[k])
