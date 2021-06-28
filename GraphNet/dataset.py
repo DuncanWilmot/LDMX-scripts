@@ -264,11 +264,11 @@ class ECalHitsDataset(Dataset):
 
             # Looping through each event and making a boolean array for the events #
             
-            N = len(recoilPx)
+            N = len(_pad_array(t['EventHeader.eventNumber']))
             
             simevents = np.zeros(N, dtype=bool)
             
-            for i in range(N):
+            for i in range(len(recoilPx))
             
                 recoilfX = CallX(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
                 recoilfY = CallY(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
