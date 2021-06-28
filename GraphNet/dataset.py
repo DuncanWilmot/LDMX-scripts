@@ -264,7 +264,7 @@ class ECalHitsDataset(Dataset):
 
             # Looping through each event and making a boolean array for the events #
             
-            N = len(_pad_array(t['EventHeader.eventNumber']))
+            N = len(_pad_array(t['EventHeader/eventNumber_']))
             
             simevents = np.zeros(N, dtype=bool)
             
