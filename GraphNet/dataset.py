@@ -261,12 +261,6 @@ class ECalHitsDataset(Dataset):
             recoilPx = _pad_array(t['EcalScoringPlaneHits_v12.px_'].array()[el])[start:stop][pos_pass_presel]
             recoilPy = _pad_array(t['EcalScoringPlaneHits_v12.py_'].array()[el])[start:stop][pos_pass_presel]
             recoilPz = _pad_array(t['EcalScoringPlaneHits_v12.pz_'].array()[el])[start:stop][pos_pass_presel]
-            
-            print(recoilX)
-            print(recoilY)
-            print(recoilPx)
-            print(recoilPy)
-            print(recoilPz)
 
             # Looping through each event and making a boolean array for the events #
             
