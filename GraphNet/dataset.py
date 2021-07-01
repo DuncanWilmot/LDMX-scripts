@@ -10,9 +10,9 @@ import uproot
 import awkward
 import concurrent.futures
 executor = concurrent.futures.ThreadPoolExecutor(12)
-
 import psutil 
 import gc #May reduce RAM usage
+torch.set_default_dtype(torch.float32)
 
 ## START NEW FOR FIDUCIAL ##
 scoringPlaneZ = 240.5015 
@@ -58,27 +58,13 @@ radius_recoil_68_theta_20_end = [4.0754238481177705, 4.193693485630508, 5.142094
 radius_68 = [radius_beam_68,radius_recoil_68_p_0_500_theta_0_10, radius_recoil_68_p_500_1500_theta_0_10,radius_recoil_68_theta_10_20,radius_recoil_68_theta_20_end]
 
 ## START NEW FOR FIDUCIAL ##
-def CallX(Hitz, Recoilx, Recoily, Recoilz, RPx, RPy, RPz):
-    Point_xz = [Recoilx, Recoilz]
-    #Almost never happens
-    if RPx == 0:
-        slope_xz = 99999
-    else:
-        slope_xz = RPz / RPx
-    
-    x_val = (float(Hitz - Point_xz[1]) / float(slope_xz)) + Point_xz[0]
-    return x_val
-    
-def CallY(Hitz, Recoilx, Recoily, Recoilz, RPx, RPy, RPz):
-    Point_yz = [Recoily, Recoilz]
-    #Almost never happens
-    if RPy == 0:
-        slope_yz = 99999
-    else:
-        slope_yz = RPz / RPy
-    
-    y_val = (float(Hitz - Point_yz[1]) / float(slope_yz)) + Point_yz[0]
-    return y_val
+def projection(Recoilx, Recoily, Recoilz, RPx, RPy, RPz, HitZ):
+    x_final = Recoilx + RPx/RPz*(HitZ - Recoilz)
+    y_final = Recoily + RPy/RPz*(HitZ - Recoilz)
+    return (x_final, y_final)
+  
+def dist(p1, p2):
+    return math.sqrt(np.sum( ( np.array(p1) - np.array(p2) )**2 ))
 ## END NEW FOR FIDUCIAL ##
 
 def _concat(arrays, axis=0):
@@ -103,6 +89,7 @@ class ECalHitsDataset(Dataset):
 
         # first load cell map
         self._load_cellMap(version=detector_version)
+        self.cells = np.array(list(self._cellMap.values()))
         self._id_branch = 'EcalRecHits_v12.id_'  # Technically not necessary anymore
         self._energy_branch = 'EcalRecHits_v12.energy_'
         ecal_veto_branches = ['EcalVeto_v12.'+b for b in veto_branches + ['summedTightIso_', 'discValue_']]
@@ -243,13 +230,13 @@ class ECalHitsDataset(Dataset):
 
             ## START NEW FOR FIDUCIAL ##
             
-            # Creating el array for recoil electrons in the Ecal scoring plane
+            # Creating el array for recoil electrons #
             el = (t['EcalScoringPlaneHits_v12.pdgID_'].array() == 11) * \
                  (t['EcalScoringPlaneHits_v12.z_'].array() > 240) * \
                  (t['EcalScoringPlaneHits_v12.z_'].array() < 241) * \
                  (t['EcalScoringPlaneHits_v12.pz_'].array() > 0)
 
-            # Defining position and momentum of recoil electrons 
+            # Defining position and momentum of recoil electrons #
             def _pad_array(arr):
                 # = t['EcalScoringPlaneHits_v12.x_'].array()[el].pad(1, clip=True).fillna(0).flatten()  #Arr of floats.  [0][0] fails.
                 arr = awkward.pad_none(arr, 1, clip=True)
@@ -270,32 +257,35 @@ class ECalHitsDataset(Dataset):
             
             for i in range(N):
             
-                recoilfX = CallX(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
-                recoilfY = CallY(ecalFaceZ, recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i])
+                fXY = projection(recoilX[event], recoilY[event], scoringPlaneZ, recoilPx[event], recoilPy[event], recoilPz[event], ecalFaceZ)
         
                 # Fiducial or not #
                 
                 fiducial = False
             
-                if not recoilX[i] == -9999 and not recoilY[i] == -9999 and not recoilPx[i] == -9999 and not recoilPy[i] == -9999 and not recoilPz[i] == -9999:
-                    for c_val in self._cellMap.values():
-                        xdis = recoilfY - c_val[1]
-                        ydis = recoilfX - c_val[0]
-                        celldis = np.sqrt(xdis**2 + ydis**2)
+                if not recoilX[event] == -9999 and not recoilY[event] == -9999 and not recoilPx[event] == -9999 and not recoilPy[event] == -9999:
+                    for cell in range(len(self.cells)):
+                        celldis = dist(self.cells[cell], fXY)             
                         if celldis <= cell_radius:
                             fiducial = True
                             break
+                            
+            # Record null values (events with no Ecal SP hit) as nonfiducial #
+            if recoilX[event] == 0 and recoilY[event] == 0 and recoilPx[event] == 0 and recoilPy[event] == 0 and recoilPz[event] == 0: 
+                    fiducial = False
 
-            # If the i-th event is in the fiducial region, mark the i-th index of the simevents array with a 1 aka TRUE #
+            # Fill in boolean array - if fiducial is true place a 1 in the corresponding position in the array #
                 if fiducial == True:
                     simevents[i] = 1
+                    
+            print("The number of events before the fiducial cut: " + str(len(table[self._energy_branch])))
                 
             # Apply simevents to preselection #
 
             for k in table:
                 table[k] = table[k][simevents] 
                 
-            ## END NEW FOR FIDUCIAL ##
+            print("The number of events after fiducial cut: " + str(len(table[self._energy_branch])))
             
             eid = table[self._id_branch]
             energy = table[self._energy_branch]
@@ -303,6 +293,34 @@ class ECalHitsDataset(Dataset):
             eid = eid[pos]  # Gets rid of all (AND ONLY) hits with 0 energy
             energy = energy[pos]
             (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
+            
+            # Apply trigger cut #
+            
+            print("The number of non-fiducial events before the trigger cut: "  + str(len(energy))) 
+            
+            t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut: ex -> [ 1, 0, 1, 1,  0 ... ]
+
+            for event in range(len(eid)): # Loop through each event in eid: ex -> [[EVENT 1 HITS], [EVENT 2 HITS], ...]
+                en = 0.0 # Initial energy starts at 0 MeV
+                
+                for hit in range(len(eid[event])): # Loop through each hit of each event in eid
+                     if layer_id[event][hit] < 20.0: # Check if the layer for the nth hit is less than 20
+                         en += energy[event][hit] # Add that hit's corresponding energy from the energy-array to the total energy "en"
+                if en < 1500.0: # If the energy is less than 1500.0 MeV after looping through the first 20 layers, mark as True (we keep this event)
+                    t_cut[event] = 1 
+                    
+            eid = eid[t_cut]                 
+            energy = energy[t_cut] 
+            x = x[t_cut]
+            y = y[t_cut]
+            z = z[t_cut]
+            layer_id = layer_id[t_cut]
+                               
+            print("The number of non-fiducial events after the trigger cut: "  + str(len(energy)))            
+
+	        n_selected = len(energy)
+            
+            ## END NEW FOR FIDUCIAL ##
 
             # Now, work with table['etraj_ref'] and table['ptraj_ref'].
             # Create lists:  x/y/z_e, p
