@@ -276,7 +276,7 @@ class ECalHitsDataset(Dataset):
 
            	 # Fill in boolean array - if fiducial is true place a 1 in the corresponding position in the array #
             	if fiducial == True:
-            		simevents[i] = 1
+            	     simevents[i] = 1
                     
             print("The number of events before the fiducial cut: " + str(len(table[self._energy_branch])))
                 
