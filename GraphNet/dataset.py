@@ -270,13 +270,13 @@ class ECalHitsDataset(Dataset):
                             fiducial = True
                             break
                             
-            # Record null values (events with no Ecal SP hit) as nonfiducial #
-            if recoilX[event] == 0 and recoilY[event] == 0 and recoilPx[event] == 0 and recoilPy[event] == 0 and recoilPz[event] == 0: 
+           	 # Record null values (events with no Ecal SP hit) as nonfiducial #
+            	if recoilX[event] == 0 and recoilY[event] == 0 and recoilPx[event] == 0 and recoilPy[event] == 0 and recoilPz[event] == 0: 
                     fiducial = False
 
-            # Fill in boolean array - if fiducial is true place a 1 in the corresponding position in the array #
-                if fiducial == True:
-                    simevents[i] = 1
+           	 # Fill in boolean array - if fiducial is true place a 1 in the corresponding position in the array #
+            	if fiducial == True:
+            		simevents[i] = 1
                     
             print("The number of events before the fiducial cut: " + str(len(table[self._energy_branch])))
                 
