@@ -250,38 +250,29 @@ class ECalHitsDataset(Dataset):
             recoilPz = _pad_array(t['EcalScoringPlaneHits_v12.pz_'].array()[el])[start:stop][pos_pass_presel]
 
             # Looping through each event and making a boolean array for the events #
-            
             N = len(recoilPx)
-            
             simevents = np.zeros(N, dtype=bool)
             
             for i in range(N):
-            
                 fXY = projection(recoilX[event], recoilY[event], scoringPlaneZ, recoilPx[event], recoilPy[event], recoilPz[event], ecalFaceZ)
-        
-                # Fiducial or not #
-                
+		# Fiducial or not 
                 fiducial = False
-            
                 if not recoilX[event] == -9999 and not recoilY[event] == -9999 and not recoilPx[event] == -9999 and not recoilPy[event] == -9999:
                     for cell in range(len(self.cells)):
                         celldis = dist(self.cells[cell], fXY)             
                         if celldis <= cell_radius:
                             fiducial = True
-                            break
-                            
-           	# Record null values (events with no Ecal SP hit) as nonfiducial #
+                            break     	
+           	# Record null values (events with no Ecal SP hit) as nonfiducial 
                 if recoilX[event] == 0 and recoilY[event] == 0 and recoilPx[event] == 0 and recoilPy[event] == 0 and recoilPz[event] == 0: 
                      fiducial = False
-
-           	# Fill in boolean array - if fiducial is true place a 1 in the corresponding position in the array #
+           	# Fill in boolean array - if fiducial is true place a 1 in the corresponding position in the array 
             	if fiducial == True:
-            	     simevents[i] = 1
+            	    simevents[i] = 1
                     
             print("The number of events before the fiducial cut: " + str(len(table[self._energy_branch])))
                 
             # Apply simevents to preselection #
-
             for k in table:
                 table[k] = table[k][simevents] 
                 
@@ -295,7 +286,6 @@ class ECalHitsDataset(Dataset):
             (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
             
             # Apply trigger cut #
-            
             print("The number of non-fiducial events before the trigger cut: "  + str(len(energy))) 
             
             t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut: ex -> [ 1, 0, 1, 1,  0 ... ]
