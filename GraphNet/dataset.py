@@ -286,7 +286,7 @@ class ECalHitsDataset(Dataset):
             (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
             
             # Apply trigger cut #
-            print("The number of non-fiducial events before the trigger cut: "  + str(len(energy))) 
+            print("The number of fiducial events before the trigger cut: "  + str(len(energy))) 
             
             t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut: ex -> [ 1, 0, 1, 1,  0 ... ]
 
@@ -294,8 +294,8 @@ class ECalHitsDataset(Dataset):
                 en = 0.0 # Initial energy starts at 0 MeV
                 
                 for hit in range(len(eid[event])): # Loop through each hit of each event in eid
-                     if layer_id[event][hit] < 20.0: # Check if the layer for the nth hit is less than 20
-                         en += energy[event][hit] # Add that hit's corresponding energy from the energy-array to the total energy "en"
+                    if layer_id[event][hit] < 20.0: # Check if the layer for the nth hit is less than 20
+                        en += energy[event][hit] # Add that hit's corresponding energy from the energy-array to the total energy "en"
                 if en < 1500.0: # If the energy is less than 1500.0 MeV after looping through the first 20 layers, mark as True (we keep this event)
                     t_cut[event] = 1 
                     
@@ -306,7 +306,7 @@ class ECalHitsDataset(Dataset):
             z = z[t_cut]
             layer_id = layer_id[t_cut]
                                
-            print("The number of non-fiducial events after the trigger cut: "  + str(len(energy)))            
+            print("The number of fiducial events after the trigger cut: "  + str(len(energy)))            
 
 	        n_selected = len(energy)
             
