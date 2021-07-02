@@ -254,19 +254,19 @@ class ECalHitsDataset(Dataset):
             simevents = np.zeros(N, dtype=bool)
             
             for i in range(N):
-                fXY = projection(recoilX[event], recoilY[event], scoringPlaneZ, recoilPx[event], recoilPy[event], recoilPz[event], ecalFaceZ)
+                fXY = projection(recoilX[i], recoilY[i], scoringPlaneZ, recoilPx[i], recoilPy[i], recoilPz[i], ecalFaceZ)
 		# Fiducial or not 
                 fiducial = False
-                if not recoilX[event] == -9999 and not recoilY[event] == -9999 and not recoilPx[event] == -9999 and not recoilPy[event] == -9999:
+                if not recoilX[i] == -9999 and not recoilY[i] == -9999 and not recoilPx[i] == -9999 and not recoilPy[i] == -9999:
                     for cell in range(len(self.cells)):
                         celldis = dist(self.cells[cell], fXY)             
                         if celldis <= cell_radius:
                             fiducial = True
                             break     	
            	# Record null values (events with no Ecal SP hit) as nonfiducial 
-                if recoilX[event] == 0 and recoilY[event] == 0 and recoilPx[event] == 0 and recoilPy[event] == 0 and recoilPz[event] == 0: 
+                if recoilX[i] == 0 and recoilY[i] == 0 and recoilPx[i] == 0 and recoilPy[i] == 0 and recoilPz[i] == 0: 
                      fiducial = False
-           	# Fill in boolean array - if fiducial is true place a 1 in the corresponding position in the array 
+           	# Fill in boolean array - if ith event is fiducial, place a 1 in the ith position of the array 
             	if fiducial == True:
             	    simevents[i] = 1
                     
@@ -288,16 +288,16 @@ class ECalHitsDataset(Dataset):
             # Apply trigger cut #
             print("Number of fiducial events pre-trigger: "  + str(len(energy))) 
             
-            t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut: ex -> [ 1, 0, 1, 1,  0 ... ]
+            t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut
 
-            for event in range(len(eid)): # Loop through each event in eid: ex -> [[EVENT 1 HITS], [EVENT 2 HITS], ...]
+            for i in range(len(eid)): # Loop through each event in eid
                 en = 0.0 # Initial energy starts at 0 MeV
                 
-                for hit in range(len(eid[event])): # Loop through each hit of each event in eid
-                    if layer_id[event][hit] < 20.0: # Check if the layer for the nth hit is less than 20
-                        en += energy[event][hit] # Add that hit's corresponding energy from the energy-array to the total energy "en"
+                for hit in range(len(eid[i])): # Loop through each hit of each event in eid
+                    if layer_id[i][hit] < 20.0: # Check if the layer for the nth hit is less than 20
+                        en += energy[i][hit] # Add that hit's corresponding energy from the energy-array to the total energy "en"
                 if en < 1500.0: # If the energy is less than 1500.0 MeV after looping through the first 20 layers, mark as True (we keep this event)
-                    t_cut[event] = 1 
+                    t_cut[i] = 1 
                     
             eid = eid[t_cut]                 
             energy = energy[t_cut] 
