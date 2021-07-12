@@ -265,7 +265,7 @@ class ECalHitsDataset(Dataset):
                             break     	
            	# Record null values (events with no Ecal SP hit) as nonfiducial 
                 if recoilX[i] == 0 and recoilY[i] == 0 and recoilPx[i] == 0 and recoilPy[i] == 0 and recoilPz[i] == 0: 
-                     fiducial = False
+                    fiducial = False
            	# Fill in boolean array - if ith event is fiducial, place a 1 in the ith position of the array 
             	if fiducial == True:
             	    simevents[i] = 1
