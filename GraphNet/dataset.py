@@ -271,7 +271,7 @@ class ECalHitsDataset(Dataset):
                 if fiducial == True:
                     simevents[i] = 1
                     
-            print("Number of events before fiducial cut: " + str(len(table[self._energy_branch])))
+            #print("Number of events before fiducial cut: " + str(len(table[self._energy_branch])))
                 
             # Apply simevents to preselection #
             for k in table:
@@ -287,7 +287,7 @@ class ECalHitsDataset(Dataset):
             (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
             
             # Apply trigger cut #
-            print("Number of fiducial events pre-trigger: "  + str(len(energy))) 
+            #print("Number of fiducial events pre-trigger: "  + str(len(energy))) 
             
             t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut
 
