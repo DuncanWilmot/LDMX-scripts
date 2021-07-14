@@ -307,7 +307,7 @@ class ECalHitsDataset(Dataset):
             z = z[t_cut]
             layer_id = layer_id[t_cut]
                                
-            print("Number of fiducial events post-trigger: "  + str(len(energy)))            
+            print("FIDUCIAL EVENTS POST-TRIGGER: "  + str(len(energy)))            
 
             n_selected = len(energy)
             
