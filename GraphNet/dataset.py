@@ -464,7 +464,7 @@ class ECalHitsDataset(Dataset):
                        # Now go through and load Ecal branches separately.
                         EcalVeto = t["EcalVeto_v12"]
                         table["EcalVeto_v12.summedTightIso_"] = EcalVeto["summedTightIso_"].array(interpretation_executor=executor)
-                        table["EcalVeto_v12.discValue_"] = EcalVeto["summedTightIso_"].array(interpretation_executor=executor)
+                        table["EcalVeto_v12.discValue_"] = EcalVeto["discValue_"].array(interpretation_executor=executor)
                         # All other ecal branches:
                         if veto_branches:
                             for branch in veto_branches:
