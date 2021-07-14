@@ -308,7 +308,7 @@ class ECalHitsDataset(Dataset):
                                
             print("Number of fiducial events post-trigger: "  + str(len(energy)))            
 
-                n_selected = len(energy)
+            n_selected = len(energy)
             
             ## END NEW FOR FIDUCIAL ##
 
