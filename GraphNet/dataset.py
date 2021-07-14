@@ -250,7 +250,7 @@ class ECalHitsDataset(Dataset):
             recoilPz = _pad_array(t['EcalScoringPlaneHits_v12.pz_'].array()[el])[start:stop][pos_pass_presel]
 
             # Looping through each event and making a boolean array for the events #
-	    N = len(recoilPx)
+            N = len(recoilPx)
             simevents = np.zeros(N, dtype=bool)
             
             for i in range(N):
