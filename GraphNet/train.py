@@ -108,9 +108,9 @@ if args.save_extra:
     
     # NEW:  EcalVeto branches must be handled separately in v2.2.1+.
     veto_branches = [
-        'discValue_',
-        'recoilX_',
-        'recoilY_',
+        #'discValue_',
+        #'recoilX_',
+        #'recoilY_',
     ]
 
 #########################################################
