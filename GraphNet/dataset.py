@@ -63,6 +63,8 @@ def projection(Recoilx, Recoily, Recoilz, RPx, RPy, RPz, HitZ):
     x_final = Recoilx + RPx/RPz*(HitZ - Recoilz)
     y_final = Recoily + RPy/RPz*(HitZ - Recoilz)
     return (x_final, y_final)
+    except ZeroDivisionError:
+        return None
   
 def dist(p1, p2):
     return math.sqrt(np.sum( ( np.array(p1) - np.array(p2) )**2 ))
