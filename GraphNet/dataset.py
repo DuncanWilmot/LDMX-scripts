@@ -60,11 +60,9 @@ radius_68 = [radius_beam_68,radius_recoil_68_p_0_500_theta_0_10, radius_recoil_6
 
 ## START NEW FOR FIDUCIAL ##
 def projection(Recoilx, Recoily, Recoilz, RPx, RPy, RPz, HitZ):
-    x_final = Recoilx + RPx/RPz*(HitZ - Recoilz)
-    y_final = Recoily + RPy/RPz*(HitZ - Recoilz)
+    x_final = Recoilx + RPx/RPz*(HitZ - Recoilz) if RPz != 0 else pass
+    y_final = Recoily + RPy/RPz*(HitZ - Recoilz) if RPz != 0 else pass
     return (x_final, y_final)
-    except ZeroDivisionError:
-        return None
   
 def dist(p1, p2):
     return math.sqrt(np.sum( ( np.array(p1) - np.array(p2) )**2 ))
