@@ -250,7 +250,7 @@ class ECalHitsDataset(Dataset):
             recoilPz = _pad_array(t['EcalScoringPlaneHits_v12.pz_'].array()[el])[start:stop][pos_pass_presel]
 
             # Looping through each event and making a boolean array for the events #
-            N = len(recoilPx)
+	    N = len(recoilPx)
             simevents = np.zeros(N, dtype=bool)
             
             for i in range(N):
@@ -267,8 +267,8 @@ class ECalHitsDataset(Dataset):
                 if recoilX[i] == 0 and recoilY[i] == 0 and recoilPx[i] == 0 and recoilPy[i] == 0 and recoilPz[i] == 0: 
                     fiducial = False
            	# Fill in boolean array - if ith event is fiducial, place a 1 in the ith position of the array 
-            	if fiducial == True:
-            	    simevents[i] = 1
+                if fiducial == True:
+                    simevents[i] = 1
                     
             print("Number of events before fiducial cut: " + str(len(table[self._energy_branch])))
                 
