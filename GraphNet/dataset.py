@@ -277,7 +277,7 @@ class ECalHitsDataset(Dataset):
             for k in table:
                 table[k] = table[k][simevents] 
                 
-            print("Number of events after fiducial cut: " + str(len(table[self._energy_branch])))
+            #print("Number of events after fiducial cut: " + str(len(table[self._energy_branch])))
             
             eid = table[self._id_branch]
             energy = table[self._energy_branch]
