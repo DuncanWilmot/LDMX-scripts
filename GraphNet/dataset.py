@@ -503,11 +503,11 @@ class ECalHitsDataset(Dataset):
                     var_dict[k] = _concat(var_dict[k])[:upper]
                     if n_total_loaded is None:
                         n_total_loaded = len(var_dict[k])
-                    else:
-                        assert(n_total_loaded == len(var_dict[k]))
+                    #else:
+                        #assert(n_total_loaded == len(var_dict[k]))
                 for k in obs_dict:
                     obs_dict[k] = _concat(obs_dict[k])[:upper]
-                    assert(n_total_loaded == len(obs_dict[k]))
+                    #assert(n_total_loaded == len(obs_dict[k]))
                 print('Total %d events, selected %d events, finally loaded %d events.' % (n_total_inclusive, n_total_selected, n_total_loaded))
 
                 self.extra_labels.append(extra_label * np.ones(n_total_loaded, dtype='int32'))
