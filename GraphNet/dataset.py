@@ -230,13 +230,45 @@ class ECalHitsDataset(Dataset):
                 print("ERROR:  ParticleNet can't handle files with no events passing selection!")
 
             ## START NEW FOR FIDUCIAL ##
+	
+            eid = table[self._id_branch]
+            energy = table[self._energy_branch]
+            pos = (energy > 0)
+            eid = eid[pos]  # Gets rid of all (AND ONLY) hits with 0 energy
+            energy = energy[pos]
+            (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
             
+            # Apply trigger cut #
+            #print("Number of fiducial events pre-trigger: "  + str(len(energy))) 
+            
+            t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut
+
+            for i in range(len(eid)): # Loop through each event in eid
+                en = 0.0 # Initial energy starts at 0 MeV
+                
+                for hit in range(len(eid[i])): # Loop through each hit of each event in eid
+                    if layer_id[i][hit] < 20.0: # Check if the layer for the nth hit is less than 20
+                        en += energy[i][hit] # Add that hit's corresponding energy from the energy-array to the total energy "en"
+                if en < 1500.0: # If the energy is less than 1500.0 MeV after looping through the first 20 layers, mark as True (we keep this event)
+                    t_cut[i] = 1 
+                    
+            eid = eid[t_cut]                 
+            energy = energy[t_cut] 
+            x = x[t_cut]
+            y = y[t_cut]
+            z = z[t_cut]
+            layer_id = layer_id[t_cut]
+                               
+            print("SELECTED EVENTS POST-TRIGGER: "  + str(len(energy)))            
+
+            n_selected = len(energy)
+ 
             # Creating el array for recoil electrons #
             el = (t['EcalScoringPlaneHits_v12.pdgID_'].array() == 11) * \
                  (t['EcalScoringPlaneHits_v12.z_'].array() > 240) * \
                  (t['EcalScoringPlaneHits_v12.z_'].array() < 241) * \
                  (t['EcalScoringPlaneHits_v12.pz_'].array() > 0)
-
+            
             # Defining position and momentum of recoil electrons #
             def _pad_array(arr):
                 # = t['EcalScoringPlaneHits_v12.x_'].array()[el].pad(1, clip=True).fillna(0).flatten()  #Arr of floats.  [0][0] fails.
@@ -270,46 +302,12 @@ class ECalHitsDataset(Dataset):
            	# Fill in boolean array - if ith event is fiducial, place a 1 in the ith position of the array 
                 if fiducial == True:
                     simevents[i] = 1
-                    
-            #print("Number of events before fiducial cut: " + str(len(table[self._energy_branch])))
                 
             # Apply simevents to preselection #
             for k in table:
                 table[k] = table[k][simevents] 
                 
-            #print("Number of events after fiducial cut: " + str(len(table[self._energy_branch])))
-            
-            eid = table[self._id_branch]
-            energy = table[self._energy_branch]
-            pos = (energy > 0)
-            eid = eid[pos]  # Gets rid of all (AND ONLY) hits with 0 energy
-            energy = energy[pos]
-            (x, y, z), layer_id = self._parse_cid(eid)  # layer_id > 0, so can use layer_id-1 to index e/ptraj_ref
-            
-            # Apply trigger cut #
-            #print("Number of fiducial events pre-trigger: "  + str(len(energy))) 
-            
-            t_cut = np.zeros(len(eid), dtype = bool) # Boolean array for trigger cut
-
-            for i in range(len(eid)): # Loop through each event in eid
-                en = 0.0 # Initial energy starts at 0 MeV
-                
-                for hit in range(len(eid[i])): # Loop through each hit of each event in eid
-                    if layer_id[i][hit] < 20.0: # Check if the layer for the nth hit is less than 20
-                        en += energy[i][hit] # Add that hit's corresponding energy from the energy-array to the total energy "en"
-                if en < 1500.0: # If the energy is less than 1500.0 MeV after looping through the first 20 layers, mark as True (we keep this event)
-                    t_cut[i] = 1 
-                    
-            eid = eid[t_cut]                 
-            energy = energy[t_cut] 
-            x = x[t_cut]
-            y = y[t_cut]
-            z = z[t_cut]
-            layer_id = layer_id[t_cut]
-                               
-            print("FIDUCIAL EVENTS POST-TRIGGER: "  + str(len(energy)))            
-
-            n_selected = len(energy)
+            print("SELECTED FIDUCIAL EVENTS POST-TRIGGER " + str(len(table[self._energy_branch])))
             
             ## END NEW FOR FIDUCIAL ##
 
