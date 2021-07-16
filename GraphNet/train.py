@@ -67,7 +67,8 @@ args = parser.parse_args()
 bkglist = {
     # (filepath, num_events_for_training)
     #0: ('/home/pmasterson/GraphNet_input/v12/*pn*.root', -1)
-    0: ('/home/pmasterson/GraphNet_input/v12/bkg_12M/*.root', -1)
+    #0: ('/home/pmasterson/GraphNet_input/v12/bkg_12M/*.root', -1)
+    0: ('/home/dgj1118/LDMX-scripts/GraphNet/background_230_trunk/*.root', -1)
     }
 
 siglist = {
