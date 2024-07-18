@@ -568,9 +568,9 @@ class _SimpleCustomBatch:
 
     def __init__(self, data, min_nodes=None):
         pts, fts, labels = list(zip(*data))
-        self.coordinates = torch.tensor(pts)
-        self.features = torch.tensor(fts)
-        self.label = torch.tensor(labels)
+        self.coordinates = torch.from_numpy(np.array(pts)) #torch.tensor(pts)
+        self.features = torch.from_numpy(np.array(fts)) #torch.tensor(fts)
+        self.label = torch.from_numpy(np.array(labels)) #torch.tensor(labels)
 
     def pin_memory(self):
         self.coordinates = self.coordinates.pin_memory()
