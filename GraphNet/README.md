@@ -98,6 +98,8 @@ After training, the next step for generating ROC curves and other plots is to ru
 
 The [eval.py](eval.py) script can also be used to apply the trained network to the input files. Unlike the [train.py](train.py) file, `eval.py` will not load all signal and background files in the same data set together, but will run over each file separately (and write a separate output for each input file). The command line options are very similar as those for the `train.py` script.  On POD, it's once again easiest to use one of the slurm job scripts, [run\_eval.job](run_eval.py).
 
+The filepath for `model_state_epoch-19_acc-*.pt` in `run_prediction.job` and `run_training.job` must be completed to correspond to your trained model (e.g., `model_state_epoch-19_acc-0.9874.pt`). The number indicates the model accuracy for the final epoch (if the maximum of accuracy occurs at say, epoch 18, you can choose that). 
+
 ## Plotting with Jupyter (on POD)
 
 Once all of your training and evaluation is done, it's time to plot the results!  If you're using ParticleNet on a computing cluster that you've ssh'ed into, like POD, you'll need to start up a Jupyter notebook server first, then set up an ssh tunnel that lets you access that notebook in your web browser.  Starting the server is straightforward:
