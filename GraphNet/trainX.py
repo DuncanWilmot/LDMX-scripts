@@ -78,7 +78,7 @@ args = parser.parse_args()
 # NOTE:  These must be output files produced by file_processor.py, not unprocessed ldmx-sw ROOT files.
 bkglist = {
     # (filepath, num_events_for_training)
-    0: ('/home/duncansw/GraphNet_input/v14/8gev/v3_tskim/XCal_total/*pn*.root', -1)
+    0: ('/home/duncansw/GraphNet_input/v14/8gev/v3_tskim/XCal_total/pn_full/*pn*.root', -1)
     }
 
 # was processed/*pn*, *0.001*, etc.
@@ -116,8 +116,9 @@ if args.demo:
 # v14:
 #presel_eff = {1: 0.9815241742343622, 10: 0.99102142309365, 100: 0.9926784519870396, 1000: 0.9949900511654349, 0: 0.06929824265618538}
 # v14 8gev:
-presel_eff = {1: 0.9952855229150378, 10: 0.9976172400798192, 100: 0.9979411114121182, 1000: 0.9981519444725636, 0: 0.04734728725337247}
-
+#presel_eff = {1: 0.9952855229150378, 10: 0.9976172400798192, 100: 0.9979411114121182, 1000: 0.9981519444725636, 0: 0.04734728725337247}
+# v14 8gev (updated for full pn sample)
+presel_eff = {1: 0.9952855229150378, 10: 0.9976172400798192, 100: 0.9979411114121182, 1000: 0.9981519444725636, 0: 0.03282988102560554}
 #########################################################
 
 ###### `observer` variables to be saved in the prediction output ######
